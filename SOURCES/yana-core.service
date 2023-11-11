@@ -1,0 +1,15 @@
+[Unit]
+Description=YaNA core
+After=network.target
+
+[Service]
+Type=exec
+Environment=YANA_CORE_OPTIONS="-f /etc/yana/yana-core.json"
+EnvironmentFile=-/etc/sysconfig/yana-core
+ExecStart=/bin/sh -c '/opt/yana/share/core/serve $YANA_CORE_OPTIONS 2>&1 |/opt/yana/bin/logfile /var/log/yana/yana-core.log'
+User=yana
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

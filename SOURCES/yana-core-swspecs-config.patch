@@ -1,0 +1,65 @@
+From 47ea027c1459499feabcf70220f9b54ca59296f6 Mon Sep 17 00:00:00 2001
+From: Julien Thomas <jthomas@zenetys.com>
+Date: Sun, 12 Nov 2023 10:17:09 +0100
+Subject: [PATCH] BUG/MINOR: swspecs: Do not read configuration file, use
+ config.options
+
+Options from the configuration file are already available in
+the config.options object, let's use it instead of reading and
+parsing the file because this was already done.
+
+Moreover, that code ignores the case when the path of the
+configuration file was given to the program from the command line
+with the -f or --config option.
+---
+ handlers/swspecs.js | 27 ++++++++-------------------
+ 1 file changed, 8 insertions(+), 19 deletions(-)
+
+diff --git a/handlers/swspecs.js b/handlers/swspecs.js
+index 7950fbc..b69a2d5 100644
+--- a/handlers/swspecs.js
++++ b/handlers/swspecs.js
+@@ -46,7 +46,7 @@ const ctx = OPTIONS.log;
+ const createConfig = (device) => {
+     const groups = {};
+ 
+-    const { swsizes, swmodels, swconfig, swvendors, vlancolors } = readConfigFile();
++    const { swsizes, swmodels, swconfig, swvendors, vlancolors } = getConfigFileOptions();
+     const { swbrand, swmodel } = getModelNBrand(device, swvendors);
+     ctx.info(`[getModelNBrand] { swbrand: ${swbrand}, swmodel: ${swmodel} }`)
+ 
+@@ -461,24 +461,13 @@ const checkPorts = (configGroup, ports) => {
+     return ports;
+ }
+ 
+-const readConfigFile = () => {
+-    try {
+-        const filePath = path.join(__dirname, '..', 'config.json')
+-        const file = fs.readFileSync(filePath, 'utf8')
+-        // parse JSON string to JSON object
+-        const data = JSON.parse(file);
+-        const swmodels = data['switch-templates'];
+-        const swconfig = data['switch-defaults'];
+-        const swvendors = data['switch-vendors'];
+-        const swsizes = data['switch-sizes'];
+-        const vlancolors = data['vlan-colors'];
+-        return { swsizes, swmodels, swconfig, swvendors, vlancolors };
+-    }
+-    catch (err) {
+-        ctx.error(`[readConfigFile] Error reading file from disk: ${err}`);
+-    }
+-
+-    return {};
++const getConfigFileOptions = () => {
++    const swmodels = config.options['switch-templates'];
++    const swconfig = config.options['switch-defaults'];
++    const swvendors = config.options['switch-vendors'];
++    const swsizes = config.options['switch-sizes'];
++    const vlancolors = config.options['vlan-colors'];
++    return { swsizes, swmodels, swconfig, swvendors, vlancolors };
+ }
+ 
+ class HandlerSwspecs extends handler.Handler {
+-- 
+2.21.1
+

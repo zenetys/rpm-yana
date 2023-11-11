@@ -1,0 +1,1 @@
+30 9,15 * * * yana /opt/yana/bin/run-nscan >/dev/null

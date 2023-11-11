@@ -1,0 +1,7 @@
+#!/bin/bash
+[[ -z $1 ]] && { echo "Usage: ${0##*/} logfile"; exit 1; }
+function reopen() { exec 1>>"$logfile"; }
+logfile=$1
+reopen
+trap reopen HUP
+while read -r; do echo "$REPLY"; done

@@ -1,0 +1,27 @@
+Alias /yana/config.json /etc/yana/yana-wui.json
+Alias /yana /opt/yana/share/wui
+
+<Directory /opt/yana/share/wui>
+    Options FollowSymLinks
+    AllowOverride AuthConfig
+    Require all granted
+</Directory>
+
+<Directory /etc/yana>
+    <Files yana-wui.json>
+        Require all granted
+    </Files>
+</Directory>
+
+ProxyPass /yana/core http://127.0.0.1:4444
+ProxyPassReverse /yana/core http://127.0.0.1:4444
+
+<Location /yana/core>
+    AddOutputFilterByType DEFLATE application/json
+</Location>
+
+<LocationMatch ^/yana>
+    # do proper auth and access control or grant for testing
+    #Require all granted
+    Require all denied
+</LocationMatch>

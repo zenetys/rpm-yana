@@ -1,0 +1,27 @@
+# Run nscan from a remote host, eg: 'ssh host'
+BASH_CMD=
+
+MAX_PARALLEL=0
+
+ALLOWED_NETWORKS=(
+    10.0.0.0/8
+    172.16.0.0/12
+    192.168.0.0/16
+)
+
+# IP of a DNS server that can resolve discovered addresses
+# instead of default configured on the system.
+DNS_SERVER=
+
+# IP of initial devices to scan, typically routers with lots of arp entries
+TARGETS=(
+    # Start with my gateway and networks by default; careful if BASH_CMD is
+    # used to run nscan on a remote host, this will be executed from the
+    # local host.
+    $(/sbin/ip ro |sed -nr -e 's,^default via ([^ ]+).*,\1,p' \
+                           -e 's,^([^ ]+).* scope link\>.*,\1,p')
+)
+
+CREDENTIALS=(
+    '*:snmp:v2:public'
+)

@@ -1,0 +1,121 @@
+#!/usr/bin/bash
+
+PROGNAME=${0##*/}
+PID=$$
+shopt -s nullglob
+
+NSCAN_USER=${NSCAN_USER:-yana}
+NSCAN_BIN=${NSCAN_BIN:-/opt/yana/share/nscan/nscan}
+NSCAN_CONFDIR=${NSCAN_CONFDIR:-/etc/yana}
+NSCAN_DATADIR=${NSCAN_DATADIR:-/var/lib/yana/nscan}
+NSCAN_LOGDIR=${NSCAN_LOGDIR:-/var/log/yana}
+YANA_BASEURL=${YANA_BASEURL:-http://127.0.0.1:4444}
+
+function info() { echo "INFO: $PROGNAME: $*"; }
+function error() { echo "ERROR: $PROGNAME: $*" >&2; }
+function fatal() { echo "FATAL: $PROGNAME: $*" >&2; exit 2; }
+
+function exit_usage() {
+    echo "\
+Usage: $PROGNAME nscan-<entity>.conf...
+Helper to call nscan and inject scan result to yana-core
+
+Available options:
+    -h, --help              Display this help
+"
+    exit 1
+}
+
+# $1: priority
+function logger_with_stdout() {
+    while read -r; do
+        echo "$REPLY"
+        logger -t "$PROGNAME[$PID]" -p "$1" -- "$REPLY"
+    done
+}
+
+# $1: nscan configuration file
+# $2: entity name
+function run() {
+    local config=$1; shift
+    local entity=$1; shift
+    local id=$(date +%Y-%m-%dT%H:%M:%S%:z)
+    local nscan_data="$NSCAN_DATADIR/$entity-$id.nscan"
+    local nscan_log="$NSCAN_LOGDIR/nscan-$entity.lastlog"
+    local run_ret=0
+
+    info "[$entity] Run nscan, config=$config, entity=$entity, id=$id"
+
+    { "$NSCAN_BIN" -C -v -v -m snmp -f "$config" |tee "$nscan_data"; } \
+        > "$nscan_log" 2>&1
+
+    local nscan_ret=${PIPESTATUS[0]}
+    if (( nscan_ret == 0 )); then
+        # POST to yana-core instead of moving file to yana-core data
+        # directory becuase it preloads the database in memory
+        info "[$entity] POST nscan data to yana-core"
+
+        curl --connect-timeout 15 -sSk -L \
+            -H 'content-type: application/x-nscan' \
+            --data-binary "@$nscan_data" \
+            "$YANA_BASEURL/entity/$entity/nscan?id=${id//+/\%2b}"
+
+        local curl_ret=$?
+        if (( curl_ret == 0 )); then
+            rm "$nscan_data"
+        else
+            error "[$entity] Curl POST to yana-core failed status $curl_ret"
+            run_ret=1
+            gzip "$nscan_data"
+        fi
+    else
+        error "[$entity] Nscan failed status $nscan_ret"
+        run_ret=1
+        if [[ -f $nscan_data ]]; then
+            mv "$nscan_data"{,.failed}
+            gzip "$nscan_data.failed"
+        fi
+    fi
+
+    gzip -f "$nscan_log"
+    return "$run_ret"
+}
+
+nscan_configs=()
+while (( $# > 0 )); do
+    case "$1" in
+        -h|--help) exit_usage 0 ;;
+        --) shift; break ;;
+        -*) exit_usage 1 ;;
+        *) nscan_configs+=( "$1" ) ;;
+    esac
+    shift
+done
+nscan_configs+=( "$@" )
+
+exec 1> >(logger_with_stdout notice)
+exec 2> >(logger_with_stdout err >&2)
+
+if [[ -n $NSCAN_USER && $(id -un) != $NSCAN_USER ]]; then
+    fatal "This script must be run as user $NSCAN_USER"
+fi
+
+if [[ -z $nscan_configs ]]; then
+    nscan_configs=( "$NSCAN_CONFDIR"/nscan-*.conf )
+fi
+
+overall_ret=0
+for config in "${nscan_configs[@]}"; do
+    # Check if nscan configuration filenames are readable and correctly
+    # formatted to extract an entity name, they may have been given by
+    # the user from the command line.
+    re='(.*/)?nscan-(.+)\.conf$'
+    if [[ ! -r $config || ! $config =~ $re ]]; then
+        error "Invalid nscan configuration filename, $config"
+        continue
+    fi
+    entity=${BASH_REMATCH[2]}
+    run "$config" "$entity" || overall_ret=1
+done
+
+exit "$overall_ret"
