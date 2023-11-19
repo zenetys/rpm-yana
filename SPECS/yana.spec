@@ -54,6 +54,7 @@ BuildRequires: yarnpkg
 
 # standard
 Requires: bash
+Requires: bind-utils
 Requires: curl
 Requires: grep
 Requires: net-snmp-utils
