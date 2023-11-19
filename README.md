@@ -55,7 +55,7 @@ The yana package, as is, will most likely not work with SELinux enforcing, make 
 
 **Nscan**
 
-Edit nscan configuration `/etc/yana/nscan-default.conf`; this file is only created at first installation of the package. It should work by default but will probably not give much result, or with little detail. Some documentation about the credentials definition can be found at https://github.com/zenetys/ztools/tree/master/nscan.
+Edit nscan configuration `/etc/yana/nscan-default.conf`; this file is only created at first installation of the package. It should work by default but will probably not give much result, or with little detail. Some documentation about the credentials definition can be found in [ztools/nscan](https://github.com/zenetys/ztools/tree/master/nscan).
 
 There can be any number of `nscan-<entity>.conf` in the directory, each will be available under a different entity in YaNA web interface.
 
