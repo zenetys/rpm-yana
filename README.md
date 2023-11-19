@@ -43,7 +43,7 @@ The yana package, as is, will most likely not work with SELinux enforcing, make 
 **Installation**
 
 ```
-# dnf install yana httpd mod_ssl
+# dnf --setopt install_weak_deps=False install yana httpd mod_ssl
 ```
 
 **API server**
