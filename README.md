@@ -1,6 +1,6 @@
 | Package&nbsp;name | Supported&nbsp;targets |
 | :--- | :--- |
-| yana | el9 |
+| yana | el8, el9 |
 <br/>
 
 ## Build:
@@ -11,6 +11,7 @@ environment is needed**_, with ability to pull Rocky Linux (el9) images
 from internet if not already downloaded.
 
 ```
+$ ./rpmbuild-docker -d el8
 $ ./rpmbuild-docker -d el9
 ```
 
@@ -29,6 +30,12 @@ https://packages.zenetys.com/latest/redhat/
 
 # cd /etc/yum.repos.d
 # curl -OL https://packages.zenetys.com/latest/redhat/zenetys.repo
+```
+
+On el8, enable nodejs:16 or nodejs:18 module stream because the default version of nodejs is too old:
+
+```
+# dnf -y module enable nodejs:16
 ```
 
 The yana package, as is, will most likely not work with SELinux enforcing, make sure it is disabled or permissive.
