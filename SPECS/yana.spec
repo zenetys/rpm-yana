@@ -2,7 +2,7 @@
 
 %{!?yana_core_version: %define yana_core_version 1.2.2}
 #define yana_core_revision 1234567
-%{!?yana_wui_version: %define yana_wui_version 1.2.2}
+%{!?yana_wui_version: %define yana_wui_version 1.2.3}
 #define yana_wui_revision 1234567
 %{!?ztools_version: %define ztools_version 1.0.4}
 #define ztools_revision 1234567
@@ -20,7 +20,7 @@
 
 Name: yana
 Version: %{yana_core_version}
-Release: 1%{?yana_core_revision:.git%{yana_core_revision}}%{?dist}.zenetys
+Release: 2%{?yana_core_revision:.git%{yana_core_revision}}%{?dist}.zenetys
 Summary: YaNA network analyzer
 Group: Applications/System
 License: MIT
