@@ -1,6 +1,6 @@
 # Supported targets: el9 (nodejs 16 or 18 via module)
 
-%{!?yana_core_version: %define yana_core_version 1.2.2}
+%{!?yana_core_version: %define yana_core_version 1.2.3}
 #define yana_core_revision 1234567
 %{!?yana_wui_version: %define yana_wui_version 1.2.3}
 #define yana_wui_revision 1234567
@@ -20,7 +20,7 @@
 
 Name: yana
 Version: %{yana_core_version}
-Release: 2%{?yana_core_revision:.git%{yana_core_revision}}%{?dist}.zenetys
+Release: 1%{?yana_core_revision:.git%{yana_core_revision}}%{?dist}.zenetys
 Summary: YaNA network analyzer
 Group: Applications/System
 License: MIT
@@ -29,8 +29,6 @@ URL: https://github.com/zenetys/yana-core
 Source0: %zenetys_git_source yana-core
 Source1: %zenetys_git_source yana-wui
 Source2: %zenetys_git_source ztools
-
-Patch0: yana-core-swspecs-config.patch
 
 Source10: nscan.conf.sample
 Source11: yana-core.service
@@ -78,9 +76,6 @@ YaNA stands for "Yet another Network Analyzer" and is composed of:
 # yana-core
 mkdir yana-core
 tar xvzf %{SOURCE0} --strip-components 1 -C yana-core
-cd yana-core
-%patch0 -p1
-cd ..
 
 # yana-wui
 mkdir yana-wui
