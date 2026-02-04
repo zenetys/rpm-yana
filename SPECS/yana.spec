@@ -1,4 +1,4 @@
-# Supported targets: el9 (nodejs 16 or 18 via module)
+# Supported targets: el8, el9 (nodejs 16 or 18 via module), el10
 
 %{!?yana_core_version: %define yana_core_version 1.2.3}
 #define yana_core_revision 1234567
